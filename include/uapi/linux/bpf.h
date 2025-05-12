@@ -1055,6 +1055,7 @@ enum bpf_prog_type {
 	BPF_PROG_TYPE_SK_LOOKUP,
 	BPF_PROG_TYPE_SYSCALL, /* a program that can execute syscalls */
 	BPF_PROG_TYPE_NETFILTER,
+	BPF_PROG_TYPE_KTHREAD,
 	__MAX_BPF_PROG_TYPE
 };
 
@@ -1116,6 +1117,7 @@ enum bpf_attach_type {
 	BPF_NETKIT_PRIMARY,
 	BPF_NETKIT_PEER,
 	BPF_TRACE_KPROBE_SESSION,
+	BPF_KTHREAD,
 	__MAX_BPF_ATTACH_TYPE
 };
 

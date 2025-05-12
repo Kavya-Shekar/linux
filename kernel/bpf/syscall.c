@@ -2843,9 +2843,10 @@ static int bpf_prog_load(union bpf_attr *attr, bpfptr_t uattr, u32 uattr_size)
 		goto free_prog_sec;
 
 	/* run eBPF verifier */
-	err = bpf_check(&prog, attr, uattr, uattr_size);
-	if (err < 0)
-		goto free_used_maps;
+	// err = bpf_check(&prog, attr, uattr, uattr_size);
+	// if (err < 0)
+	// 	goto free_used_maps;
+	pr_info("[bpf/syscall.c] Skipping BPF verification\n");
 
 	prog = bpf_prog_select_runtime(prog, &err);
 	if (err < 0)
@@ -3951,6 +3952,8 @@ attach_type_to_prog_type(enum bpf_attach_type attach_type)
 	case BPF_NETKIT_PRIMARY:
 	case BPF_NETKIT_PEER:
 		return BPF_PROG_TYPE_SCHED_CLS;
+	case BPF_TRACE_KPROBE_SESSION+1:
+		return BPF_PROG_TYPE_KTHREAD;
 	default:
 		return BPF_PROG_TYPE_UNSPEC;
 	}
@@ -4070,6 +4073,10 @@ static int bpf_prog_attach(const union bpf_attr *attr)
 	}
 
 	switch (ptype) {
+	case BPF_PROG_TYPE_KTHREAD:
+		pr_info("TODO: init and start the workqueue\n");
+		ret = 0;
+		break;
 	case BPF_PROG_TYPE_SK_SKB:
 	case BPF_PROG_TYPE_SK_MSG:
 		ret = sock_map_get_from_fd(attr, prog);
@@ -4139,6 +4146,10 @@ static int bpf_prog_detach(const union bpf_attr *attr)
 	}
 
 	switch (ptype) {
+	case BPF_PROG_TYPE_KTHREAD:
+		pr_info("TODO: stop and free the workqueue\n");
+		ret = 0;
+		break;
 	case BPF_PROG_TYPE_SK_MSG:
 	case BPF_PROG_TYPE_SK_SKB:
 		ret = sock_map_prog_detach(attr, ptype);

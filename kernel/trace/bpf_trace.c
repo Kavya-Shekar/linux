@@ -2051,6 +2051,13 @@ const struct bpf_prog_ops tracing_prog_ops = {
 	.test_run = bpf_prog_test_run_tracing,
 };
 
+const struct bpf_verifier_ops kthread_verifier_ops = {
+};
+
+const struct bpf_prog_ops kthread_prog_ops = {
+	.test_run = bpf_prog_test_run_tracing,
+};
+
 static bool raw_tp_writable_prog_is_valid_access(int off, int size,
 						 enum bpf_access_type type,
 						 const struct bpf_prog *prog,
