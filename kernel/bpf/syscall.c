@@ -4257,7 +4257,6 @@ static int bpf_prog_query(const union bpf_attr *attr,
 static int bpf_prog_test_run(const union bpf_attr *attr,
 			     union bpf_attr __user *uattr)
 {
-	pr_info("Test run begins...\n");
 	struct bpf_prog *prog;
 	int ret = -ENOTSUPP;
 
@@ -5684,7 +5683,6 @@ static int __sys_bpf(enum bpf_cmd cmd, bpfptr_t uattr, unsigned int size)
 		err = bpf_prog_query(&attr, uattr.user);
 		break;
 	case BPF_PROG_TEST_RUN:
-		pr_info("Test run triggered...\n");
 		err = bpf_prog_test_run(&attr, uattr.user);
 		break;
 	case BPF_PROG_GET_NEXT_ID:
