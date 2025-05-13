@@ -1585,6 +1585,13 @@ struct bpf_prog {
 					    const struct bpf_insn *insn);
 	struct bpf_prog_aux	*aux;		/* Auxiliary fields */
 	struct sock_fprog_kern	*orig_prog;	/* Original BPF program */
+
+	/* Additions to support BPF_PROG_TYPE_KTHREAD */
+
+	struct work_struct		sched_work;
+	ktime_t				sched_period;
+	struct hrtimer			sched_timer;
+
 	/* Instructions for interpreter */
 	union {
 		DECLARE_FLEX_ARRAY(struct sock_filter, insns);

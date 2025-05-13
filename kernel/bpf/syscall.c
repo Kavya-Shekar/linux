@@ -39,6 +39,7 @@
 #include <net/netfilter/nf_bpf_link.h>
 #include <net/netkit.h>
 #include <net/tcx.h>
+#include "bpf_kthread.h"
 
 #define IS_FD_ARRAY(map) ((map)->map_type == BPF_MAP_TYPE_PERF_EVENT_ARRAY || \
 			  (map)->map_type == BPF_MAP_TYPE_CGROUP_ARRAY || \
@@ -4074,8 +4075,7 @@ static int bpf_prog_attach(const union bpf_attr *attr)
 
 	switch (ptype) {
 	case BPF_PROG_TYPE_KTHREAD:
-		pr_info("TODO: init and start the workqueue\n");
-		ret = 0;
+		ret = bpf_kthread_prog_attach(attr, prog);
 		break;
 	case BPF_PROG_TYPE_SK_SKB:
 	case BPF_PROG_TYPE_SK_MSG:
@@ -4145,10 +4145,13 @@ static int bpf_prog_detach(const union bpf_attr *attr)
 		return -EINVAL;
 	}
 
+	prog = bpf_prog_get_type(attr->attach_bpf_fd, ptype);
+	if (IS_ERR(prog))
+		return PTR_ERR(prog);
+
 	switch (ptype) {
 	case BPF_PROG_TYPE_KTHREAD:
-		pr_info("TODO: stop and free the workqueue\n");
-		ret = 0;
+		ret = bpf_kthread_prog_detach(attr, prog);
 		break;
 	case BPF_PROG_TYPE_SK_MSG:
 	case BPF_PROG_TYPE_SK_SKB:
@@ -4255,6 +4258,7 @@ static int bpf_prog_query(const union bpf_attr *attr,
 static int bpf_prog_test_run(const union bpf_attr *attr,
 			     union bpf_attr __user *uattr)
 {
+	pr_info("Test run begins...\n");
 	struct bpf_prog *prog;
 	int ret = -ENOTSUPP;
 
@@ -5634,8 +5638,10 @@ static int __sys_bpf(enum bpf_cmd cmd, bpfptr_t uattr, unsigned int size)
 
 	/* copy attributes from user space, may be less than sizeof(bpf_attr) */
 	memset(&attr, 0, sizeof(attr));
-	if (copy_from_bpfptr(&attr, uattr, size) != 0)
+	if (copy_from_bpfptr(&attr, uattr, size) != 0){
+		pr_err("[bpf/syscall.c] L-5641: Unable to copy bpf attributes from user space\n");
 		return -EFAULT;
+	}
 
 	err = security_bpf(cmd, &attr, size);
 	if (err < 0)
@@ -5679,6 +5685,7 @@ static int __sys_bpf(enum bpf_cmd cmd, bpfptr_t uattr, unsigned int size)
 		err = bpf_prog_query(&attr, uattr.user);
 		break;
 	case BPF_PROG_TEST_RUN:
+		pr_info("Test run triggered...\n");
 		err = bpf_prog_test_run(&attr, uattr.user);
 		break;
 	case BPF_PROG_GET_NEXT_ID:
