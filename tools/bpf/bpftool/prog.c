@@ -49,6 +49,7 @@ static const bool attach_types[] = {
 	[BPF_SK_SKB_VERDICT] = true,
 	[BPF_SK_MSG_VERDICT] = true,
 	[BPF_FLOW_DISSECTOR] = true,
+	[BPF_KTHREAD] = true,
 	[__MAX_BPF_ATTACH_TYPE] = false,
 };
 
@@ -1046,7 +1047,7 @@ static int parse_attach_detach_args(int argc, char **argv, int *progfd,
 		return -EINVAL;
 	}
 
-	if (*attach_type == BPF_FLOW_DISSECTOR) {
+	if (*attach_type == BPF_FLOW_DISSECTOR || *attach_type == BPF_KTHREAD) {
 		*mapfd = 0;
 		return 0;
 	}

@@ -39,6 +39,7 @@
 #include <net/netfilter/nf_bpf_link.h>
 #include <net/netkit.h>
 #include <net/tcx.h>
+#include "bpf_kthread.h"
 
 #define IS_FD_ARRAY(map) ((map)->map_type == BPF_MAP_TYPE_PERF_EVENT_ARRAY || \
 			  (map)->map_type == BPF_MAP_TYPE_CGROUP_ARRAY || \
@@ -3951,6 +3952,8 @@ attach_type_to_prog_type(enum bpf_attach_type attach_type)
 	case BPF_NETKIT_PRIMARY:
 	case BPF_NETKIT_PEER:
 		return BPF_PROG_TYPE_SCHED_CLS;
+	case BPF_KTHREAD:
+		return BPF_PROG_TYPE_KTHREAD;
 	default:
 		return BPF_PROG_TYPE_UNSPEC;
 	}
@@ -4070,6 +4073,9 @@ static int bpf_prog_attach(const union bpf_attr *attr)
 	}
 
 	switch (ptype) {
+	case BPF_PROG_TYPE_KTHREAD:
+		ret = bpf_kthread_prog_attach(attr, prog);
+		break;
 	case BPF_PROG_TYPE_SK_SKB:
 	case BPF_PROG_TYPE_SK_MSG:
 		ret = sock_map_get_from_fd(attr, prog);
@@ -4138,7 +4144,14 @@ static int bpf_prog_detach(const union bpf_attr *attr)
 		return -EINVAL;
 	}
 
+	prog = bpf_prog_get_type(attr->attach_bpf_fd, ptype);
+	if (IS_ERR(prog))
+		return PTR_ERR(prog);
+
 	switch (ptype) {
+	case BPF_PROG_TYPE_KTHREAD:
+		ret = bpf_kthread_prog_detach(attr, prog);
+		break;
 	case BPF_PROG_TYPE_SK_MSG:
 	case BPF_PROG_TYPE_SK_SKB:
 		ret = sock_map_prog_detach(attr, ptype);
@@ -5623,8 +5636,10 @@ static int __sys_bpf(enum bpf_cmd cmd, bpfptr_t uattr, unsigned int size)
 
 	/* copy attributes from user space, may be less than sizeof(bpf_attr) */
 	memset(&attr, 0, sizeof(attr));
-	if (copy_from_bpfptr(&attr, uattr, size) != 0)
+	if (copy_from_bpfptr(&attr, uattr, size) != 0){
+		pr_err("[bpf/syscall.c] L-5641: Unable to copy bpf attributes from user space\n");
 		return -EFAULT;
+	}
 
 	err = security_bpf(cmd, &attr, size);
 	if (err < 0)
