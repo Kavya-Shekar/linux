@@ -49,8 +49,8 @@ static const bool attach_types[] = {
 	[BPF_SK_SKB_VERDICT] = true,
 	[BPF_SK_MSG_VERDICT] = true,
 	[BPF_FLOW_DISSECTOR] = true,
-	[BPF_TRACE_KPROBE_SESSION+1] = true,
-	[__MAX_BPF_ATTACH_TYPE+1] = false,
+	[BPF_KTHREAD] = true,
+	[__MAX_BPF_ATTACH_TYPE] = false,
 };
 
 /* Textual representations traditionally used by the program and kept around
@@ -61,7 +61,7 @@ static const char * const attach_type_strings[] = {
 	[BPF_SK_SKB_STREAM_VERDICT] = "stream_verdict",
 	[BPF_SK_SKB_VERDICT] = "skb_verdict",
 	[BPF_SK_MSG_VERDICT] = "msg_verdict",
-	[__MAX_BPF_ATTACH_TYPE+1] = NULL,
+	[__MAX_BPF_ATTACH_TYPE] = NULL,
 };
 
 static struct hashmap *prog_table;
@@ -70,7 +70,7 @@ static enum bpf_attach_type parse_attach_type(const char *str)
 {
 	enum bpf_attach_type type;
 
-	for (type = 0; type < __MAX_BPF_ATTACH_TYPE+1; type++) {
+	for (type = 0; type < __MAX_BPF_ATTACH_TYPE; type++) {
 		if (attach_types[type]) {
 			const char *attach_type_str;
 
@@ -1042,12 +1042,12 @@ static int parse_attach_detach_args(int argc, char **argv, int *progfd,
 		return *progfd;
 
 	*attach_type = parse_attach_type(*argv);
-	if (*attach_type == __MAX_BPF_ATTACH_TYPE+1) {
+	if (*attach_type == __MAX_BPF_ATTACH_TYPE) {
 		p_err("invalid attach/detach type");
 		return -EINVAL;
 	}
 
-	if (*attach_type == BPF_FLOW_DISSECTOR || *attach_type == BPF_TRACE_KPROBE_SESSION+1) {
+	if (*attach_type == BPF_FLOW_DISSECTOR || *attach_type == BPF_KTHREAD) {
 		*mapfd = 0;
 		return 0;
 	}

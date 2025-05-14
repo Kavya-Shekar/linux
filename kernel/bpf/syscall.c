@@ -3952,7 +3952,7 @@ attach_type_to_prog_type(enum bpf_attach_type attach_type)
 	case BPF_NETKIT_PRIMARY:
 	case BPF_NETKIT_PEER:
 		return BPF_PROG_TYPE_SCHED_CLS;
-	case BPF_TRACE_KPROBE_SESSION+1:
+	case BPF_KTHREAD:
 		return BPF_PROG_TYPE_KTHREAD;
 	default:
 		return BPF_PROG_TYPE_UNSPEC;
